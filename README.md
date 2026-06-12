@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# sites.xyz v1
 
-## Getting Started
+Static ENS site builder for plain HTML, CSS, JS, and assets.
 
-First, run the development server:
+This app lets a user:
+
+- connect a wallet with `wagmi` + Family `ConnectKit`
+- load owned ENS names into a dropdown
+- create or import a static site folder
+- preview the folder in-browser
+- upload the folder to IPFS
+- set the ENS `contenthash` to the uploaded CID
+
+The product is intentionally narrow:
+
+- supported: static folders with `index.html` and relative assets
+- not supported: React/Vite/Next source projects, build steps, server code
+
+## Stack
+
+- Next.js App Router
+- React 18
+- wagmi
+- ConnectKit
+- Pinata upload API
+- ENS contenthash writes via the public resolver
+
+`ConnectKit` currently supports React 17/18, so this project is pinned to a React 18-compatible Next.js stack.
+
+## Environment
+
+Copy `.env.example` to `.env.local` and fill in:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
+NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_MAINNET_RPC_URL=
+PINATA_JWT=
+PINATA_GATEWAY=
+ENS_SUBGRAPH_URL=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Notes:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` is required for wallet connections.
+- `PINATA_JWT` is required to publish to IPFS.
+- `PINATA_GATEWAY` is optional but recommended for nicer returned gateway links.
+- `ENS_SUBGRAPH_URL` is optional, but it is what enables enumerating owned ENS names into the dropdown.
+- Without `ENS_SUBGRAPH_URL`, the app falls back to the wallet's onchain primary ENS name only.
+- `NEXT_PUBLIC_MAINNET_RPC_URL` is optional; the app falls back to the chain default transport.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open `http://127.0.0.1:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verification
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run lint
+npm run build
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Both commands pass on the current codebase.

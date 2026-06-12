@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ece8de;
+  --foreground: #181612;
+  --surface: rgba(255, 251, 245, 0.8);
+  --surface-strong: rgba(255, 252, 247, 0.94);
+  --surface-soft: rgba(242, 238, 230, 0.8);
+  --line: rgba(24, 22, 18, 0.08);
+  --line-strong: rgba(24, 22, 18, 0.16);
+  --shadow-lg: 0 34px 90px rgba(34, 33, 27, 0.12);
+  --shadow-md: 0 18px 42px rgba(34, 33, 27, 0.08);
+  --accent: #2d8a57;
+  --accent-strong: #1d5f3d;
+  --ink: #12120f;
+  --panel-gradient: linear-gradient(180deg, rgba(255, 252, 247, 0.96) 0%, rgba(247, 242, 235, 0.9) 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(88, 148, 108, 0.18), transparent 20%),
+    radial-gradient(circle at 84% 18%, rgba(205, 180, 121, 0.16), transparent 26%),
+    radial-gradient(circle at 72% 82%, rgba(33, 86, 59, 0.08), transparent 24%),
+    linear-gradient(180deg, #f5f0e7 0%, #ece6da 48%, #e4dfd4 100%);
 }
 
 body {
-  background: var(--background);
+  min-height: 100%;
+  background: transparent;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(60, 156, 96, 0.18);
+  color: #102115;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+}
+
+textarea,
+input,
+select {
+  caret-color: var(--accent-strong);
+}
+
+.app-shell {
+  position: relative;
+}
+
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(82, 182, 118, 0.14), transparent 18%),
+    radial-gradient(circle at 78% 24%, rgba(197, 152, 78, 0.1), transparent 20%),
+    radial-gradient(circle at 84% 72%, rgba(32, 96, 56, 0.08), transparent 20%);
+  opacity: 0.9;
+}
+
+.glass-panel {
+  background: var(--panel-gradient);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(22px);
+}
+
+.soft-panel {
+  background: var(--surface-soft);
+  border: 1px solid rgba(66, 123, 83, 0.12);
+  box-shadow: var(--shadow-md);
+}
+
+.ink-panel {
+  background:
+    linear-gradient(180deg, rgba(18, 18, 15, 0.98) 0%, rgba(24, 26, 22, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 70px rgba(18, 18, 15, 0.24);
+  color: #f7f2e8;
+}
+
+.paper-panel {
+  background: rgba(255, 252, 247, 0.88);
+  border: 1px solid rgba(24, 22, 18, 0.08);
+  box-shadow: 0 24px 60px rgba(24, 22, 18, 0.08);
+  backdrop-filter: blur(20px);
+}
+
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(0, 0, 0, 0.8) 0.5px, transparent 0.5px),
+    radial-gradient(circle at 80% 40%, rgba(0, 0, 0, 0.7) 0.5px, transparent 0.5px),
+    radial-gradient(circle at 40% 80%, rgba(0, 0, 0, 0.6) 0.5px, transparent 0.5px);
+  background-size: 18px 18px, 22px 22px, 26px 26px;
+}
+
+button:has(> div.primary) {
+  border-radius: 999px;
+}
+
+button:has(> div.primary) > div.primary {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 18px 36px rgba(10, 10, 10, 0.22);
 }
