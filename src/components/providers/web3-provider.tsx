@@ -20,13 +20,22 @@ const config = createConfig(
     transports: {
       // eth.merkle.io (wagmi default) blocks CORS from browser origins.
       // Use CORS-friendly public RPCs instead.
+      //
+      // NOTE: cloudflare-eth.com ("Cannot fulfill request") and
+      // rpc.ankr.com ("Unauthorized" — now needs an API key) are dead for
+      // anonymous browser use. Keeping them in the fallback list made every
+      // request burn seconds failing through them first, which is why
+      // tx confirmation felt eternal. Only verified-working endpoints below.
       [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC_URL
         ? http(process.env.NEXT_PUBLIC_MAINNET_RPC_URL)
-        : fallback([
-            http("https://cloudflare-eth.com"),
-            http("https://rpc.ankr.com/eth"),
-            http("https://ethereum.publicnode.com"),
-          ]),
+        : fallback(
+            [
+              http("https://ethereum.publicnode.com", { timeout: 6_000, retryCount: 1 }),
+              http("https://eth.drpc.org", { timeout: 6_000, retryCount: 1 }),
+              http("https://1rpc.io/eth", { timeout: 8_000, retryCount: 1 }),
+            ],
+            { retryCount: 2 },
+          ),
     },
   }),
 );

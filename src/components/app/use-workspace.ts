@@ -483,13 +483,19 @@ export function useWorkspace() {
 
     let confirmed = false;
     try {
-      // 90-second timeout — mainnet can be slow. If it doesn't confirm in time
-      // we still advance to done: the tx is already submitted and will eventually mine.
-      await publicClient.waitForTransactionReceipt({ hash: txHash, timeout: 90_000 });
+      // Poll every 3s (mainnet blocks land every ~12s; viem's default interval
+      // is slower). 90-second cap — if it doesn't confirm in time we still
+      // advance to done: the tx is submitted and will eventually mine.
+      await publicClient.waitForTransactionReceipt({
+        hash: txHash,
+        timeout: 90_000,
+        pollingInterval: 3_000,
+        retryCount: 3,
+      });
       confirmed = true;
     } catch {
       // waitForTransactionReceipt can throw even when the tx HAS confirmed —
-      // the public RPCs rate-limit and drop polling requests. Before telling
+      // public RPCs rate-limit and drop polling requests. Before telling
       // the user it's unconfirmed, ask for the receipt directly a few times.
       for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
         try {
