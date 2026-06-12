@@ -203,11 +203,14 @@ export function useWorkspace() {
           nextMessage =
             data.source === "ens-subgraph"
               ? "Showing your primary ENS name. The subgraph returned no owned names for this wallet."
-              : "Showing your primary ENS name. Add ENS_SUBGRAPH_URL to see all owned names.";
+              : data.source === "subgraph-error"
+                ? "Showing your primary ENS name. The subgraph lookup failed — full list unavailable right now."
+                : "Showing your primary ENS name. Add ENS_SUBGRAPH_URL to see all owned names.";
         } else if (!nextMessage) {
-          nextMessage = data.source === "none"
-            ? "Full name listing needs an indexer. Enter any name you control manually below."
-            : undefined;
+          nextMessage =
+            data.source === "unconfigured" || data.source === "subgraph-error"
+              ? "Full name listing needs an indexer. Enter any name you control manually below."
+              : undefined;
         }
       }
 
@@ -478,13 +481,29 @@ export function useWorkspace() {
       txHash,
     });
 
+    let confirmed = false;
     try {
       // 90-second timeout — mainnet can be slow. If it doesn't confirm in time
       // we still advance to done: the tx is already submitted and will eventually mine.
       await publicClient.waitForTransactionReceipt({ hash: txHash, timeout: 90_000 });
+      confirmed = true;
     } catch {
-      // Timeout or polling error — the tx is still on-chain, just not confirmed yet.
-      // Show done with a note to check Etherscan rather than showing an error.
+      // waitForTransactionReceipt can throw even when the tx HAS confirmed —
+      // the public RPCs rate-limit and drop polling requests. Before telling
+      // the user it's unconfirmed, ask for the receipt directly a few times.
+      for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
+        try {
+          const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+          confirmed = !!receipt;
+        } catch {
+          // receipt not found yet — wait a beat and retry
+          await new Promise((resolve) => setTimeout(resolve, 3_000));
+        }
+      }
+    }
+
+    if (!confirmed) {
+      // Genuinely not confirmed yet — the tx is on-chain, just not mined.
       setPublishState({
         phase: "done",
         message: "Transaction submitted — may take a few minutes to confirm. Check Etherscan for status.",
@@ -540,6 +559,7 @@ export function useWorkspace() {
     setSelectedName,
     namesLoading,
     namesMessage,
+    isConnected,
     // publish
     publishState,
     publishSite,

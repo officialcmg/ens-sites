@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
   if (!url) {
     return NextResponse.json({
       names: [],
-      source: "none",
+      source: "unconfigured",
       message: "Owned-name enumeration requires ENS_SUBGRAPH_URL.",
     });
   }
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
   } catch {
     return NextResponse.json({
       names: [],
-      source: "none",
+      source: "subgraph-error",
       message: "The ENS subgraph query failed.",
     });
   }
