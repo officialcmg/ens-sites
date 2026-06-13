@@ -101,7 +101,7 @@ export default function Home() {
               <code className="border-2 border-[#12120f] bg-[#fffcf7] px-1.5 py-0.5 font-mono text-sm font-bold">
                 yourname.eth.limo
               </code>
-              . No servers. No build steps. No takedowns.
+              . No servers. No build steps. No gatekeepers.
             </p>
 
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
