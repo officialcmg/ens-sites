@@ -161,7 +161,9 @@ function filePathToPreviewUrl(
       rewriteCssUrls(file.content, file.path, files, cache, stack),
     );
   } else if (file.mimeType === "text/html") {
-    dataUrl = toDataUrl(file.mimeType, buildPreviewDocument(files, file.path));
+    // Thread the SAME cache + stack so cross-page links (index -> page -> index)
+    // are detected as cycles instead of recursing forever.
+    dataUrl = toDataUrl(file.mimeType, buildPreviewDocumentInner(files, file.path, cache, stack));
   } else {
     dataUrl = toDataUrl(file.mimeType, file.content);
   }
@@ -172,6 +174,19 @@ function filePathToPreviewUrl(
 }
 
 export function buildPreviewDocument(files: SiteFile[], entryPath = "index.html") {
+  // Seed the stack with the entry page so self-links (e.g. a logo linking
+  // "index.html" from index.html) and linked-page cycles (index -> page ->
+  // index) are detected by filePathToPreviewUrl instead of recursing forever.
+  const stack = new Set<string>([entryPath]);
+  return buildPreviewDocumentInner(files, entryPath, new Map<string, string>(), stack);
+}
+
+function buildPreviewDocumentInner(
+  files: SiteFile[],
+  entryPath: string,
+  cache: Map<string, string>,
+  stack: Set<string>,
+): string {
   const entry = files.find((file) => file.path === entryPath && file.kind === "text");
   if (!entry) {
     return `<html><body style="font-family: sans-serif; padding: 24px;">Missing ${entryPath}</body></html>`;
@@ -183,8 +198,6 @@ export function buildPreviewDocument(files: SiteFile[], entryPath = "index.html"
 
   const parser = new DOMParser();
   const documentNode = parser.parseFromString(entry.content, "text/html");
-  const cache = new Map<string, string>();
-  const stack = new Set<string>();
 
   const attrPairs = [
     ["img", "src"],
@@ -232,6 +245,7 @@ export function buildPreviewDocument(files: SiteFile[], entryPath = "index.html"
   head.prepend(viewport);
   if (!documentNode.head) documentNode.documentElement.prepend(head);
 
+  stack.delete(entryPath);
   return `<!DOCTYPE html>\n${documentNode.documentElement.outerHTML}`;
 }
 
