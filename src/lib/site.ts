@@ -88,6 +88,11 @@ function resolvePath(fromPath: string, ref: string) {
   if (!ref || isExternalRef(ref)) return ref;
   if (ref.startsWith("/")) return ref.slice(1);
 
+  // Strip URL fragment (#anchor) and query (?v=1) — they are not part of the
+  // file path. e.g. "index.html#projects" points at the file "index.html".
+  ref = ref.split(/[?#]/)[0];
+  if (!ref) return fromPath;
+
   const fromParts = fromPath.split("/");
   fromParts.pop();
 

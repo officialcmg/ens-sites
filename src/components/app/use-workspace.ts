@@ -265,7 +265,31 @@ export function useWorkspace() {
     if (!fileList?.length) return;
 
     startImportTransition(async () => {
-      const imported = await Promise.all(Array.from(fileList).map((file) => browserFileToSiteFile(file)));
+      const list = Array.from(fileList);
+
+      // When importing a folder, the browser prefixes every path with the
+      // selected folder's name (e.g. "chrismg/index.html"). Detect a single
+      // common top-level directory shared by ALL files and strip it, so the
+      // site is rooted correctly (index.html at the root, not chrismg/index.html).
+      const relPaths = list.map(
+        (file) => (file as File & { webkitRelativePath?: string }).webkitRelativePath || "",
+      );
+      let commonRoot = "";
+      if (relPaths.every((p) => p.includes("/"))) {
+        const firstSegments = new Set(relPaths.map((p) => p.split("/")[0]));
+        if (firstSegments.size === 1) {
+          commonRoot = `${[...firstSegments][0]}/`;
+        }
+      }
+
+      const imported = await Promise.all(
+        list.map((file) => {
+          const rel = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
+          const override =
+            commonRoot && rel?.startsWith(commonRoot) ? rel.slice(commonRoot.length) : undefined;
+          return browserFileToSiteFile(file, override);
+        }),
+      );
       upsertFiles(imported);
     });
   }
